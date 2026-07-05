@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from config import Config
 from utils.file_helpers import save_uploaded_file
 from services.text_extractor import extract_text, UnsupportedFileTypeError, TextExtractionError
+from services.ai_analyzer import analyze_resume, AIAnalysisError, JSONParseError
 
 resume_bp = Blueprint('resume', __name__)
 
@@ -12,7 +13,7 @@ def health():
 
 @resume_bp.route('/upload', methods=['POST'])
 def upload_resume():
-    """Handle resume file upload and text extraction."""
+    """Handle resume file upload, text extraction, and AI analysis."""
     # Check if file is in request
     if 'file' not in request.files:
         return jsonify({
@@ -51,6 +52,9 @@ def upload_resume():
         character_count = len(extracted_text)
         preview = extracted_text[:500] if extracted_text else ""
         
+        # Analyze with AI
+        analysis = analyze_resume(extracted_text)
+        
         return jsonify({
             "success": True,
             "filename": unique_filename,
@@ -58,8 +62,10 @@ def upload_resume():
             "file_size": file_size,
             "characters": character_count,
             "preview": preview,
-            "message": "Resume uploaded and parsed successfully"
+            "analysis": analysis,
+            "message": "Resume uploaded, parsed, and analyzed successfully"
         }), 201
+        
     except UnsupportedFileTypeError as e:
         return jsonify({
             "success": False,
@@ -70,3 +76,13 @@ def upload_resume():
             "success": False,
             "error": str(e)
         }), 400
+    except AIAnalysisError as e:
+        return jsonify({
+            "success": False,
+            "error": f"AI analysis failed: {str(e)}"
+        }), 500
+    except JSONParseError as e:
+        return jsonify({
+            "success": False,
+            "error": f"Failed to parse AI response: {str(e)}"
+        }), 500
