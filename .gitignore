@@ -1,3 +1,9 @@
+# Backup ZIPs
+designs/*.zip
+
+# Temporary extracted folders
+designs/*-temp/
+
 # Dependencies
 node_modules/
 .pnpm-store/
