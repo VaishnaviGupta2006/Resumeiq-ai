@@ -1,6 +1,11 @@
+import os
 from flask import Flask, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
 from config import Config
+
+# Load environment variables from .env file
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)
@@ -23,5 +28,9 @@ def create_app():
     return app
 
 if __name__ == '__main__':
+    # Check if GEMINI_API_KEY is loaded
+    gemini_api_key = os.getenv('GEMINI_API_KEY')
+    print(f"GEMINI_API_KEY loaded: {'Yes' if gemini_api_key else 'No'}")
+    
     app = create_app()
     app.run(host='0.0.0.0', port=5000, debug=True)

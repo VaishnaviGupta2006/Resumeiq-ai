@@ -50,7 +50,9 @@ The server will start on `http://localhost:5000`
   "filename": "resume_abc123.pdf",
   "original_filename": "my_resume.pdf",
   "file_size": 12345,
-  "message": "Resume uploaded successfully"
+  "characters": 2450,
+  "preview": "First 500 characters of extracted text...",
+  "message": "Resume uploaded and parsed successfully"
 }
 ```
 

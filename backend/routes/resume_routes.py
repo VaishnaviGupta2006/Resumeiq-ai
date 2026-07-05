@@ -2,6 +2,7 @@ import os
 from flask import Blueprint, request, jsonify
 from config import Config
 from utils.file_helpers import save_uploaded_file
+from services.text_extractor import extract_text, UnsupportedFileTypeError, TextExtractionError
 
 resume_bp = Blueprint('resume', __name__)
 
@@ -11,7 +12,7 @@ def health():
 
 @resume_bp.route('/upload', methods=['POST'])
 def upload_resume():
-    """Handle resume file upload."""
+    """Handle resume file upload and text extraction."""
     # Check if file is in request
     if 'file' not in request.files:
         return jsonify({
@@ -42,10 +43,30 @@ def upload_resume():
     file_size = file.tell()
     file.seek(0)
     
-    return jsonify({
-        "success": True,
-        "filename": unique_filename,
-        "original_filename": file.filename,
-        "file_size": file_size,
-        "message": "Resume uploaded successfully"
-    }), 201
+    # Extract text from the uploaded file
+    file_path = os.path.join(Config.UPLOAD_FOLDER, unique_filename)
+    
+    try:
+        extracted_text = extract_text(file_path)
+        character_count = len(extracted_text)
+        preview = extracted_text[:500] if extracted_text else ""
+        
+        return jsonify({
+            "success": True,
+            "filename": unique_filename,
+            "original_filename": file.filename,
+            "file_size": file_size,
+            "characters": character_count,
+            "preview": preview,
+            "message": "Resume uploaded and parsed successfully"
+        }), 201
+    except UnsupportedFileTypeError as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 400
+    except TextExtractionError as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 400
