@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { TopNav } from "@/components/dashboard/top-nav"
 import { StatCards } from "@/components/dashboard/stat-cards"
@@ -32,10 +33,13 @@ export default function DashboardPage() {
                 Here&apos;s how your resumes are performing today.
               </p>
             </div>
-            <button className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90">
+            <Link
+              href="/upload"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+            >
               <Upload className="size-4" />
               Upload Resume
-            </button>
+            </Link>
           </div>
 
           <StatCards />

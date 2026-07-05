@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import {
   LayoutDashboard,
   Upload,
@@ -14,13 +15,13 @@ import {
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, active: true },
-  { label: "Upload Resume", icon: Upload },
-  { label: "Resume History", icon: History },
-  { label: "Job Match", icon: Target },
-  { label: "Cover Letter Generator", icon: FileText },
-  { label: "Profile", icon: User },
-  { label: "Settings", icon: Settings },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", active: true },
+  { label: "Upload Resume", icon: Upload, href: "/upload" },
+  { label: "Resume History", icon: History, href: "/dashboard" },
+  { label: "Job Match", icon: Target, href: "/dashboard" },
+  { label: "Cover Letter Generator", icon: FileText, href: "/dashboard" },
+  { label: "Profile", icon: User, href: "/dashboard" },
+  { label: "Settings", icon: Settings, href: "/dashboard" },
 ]
 
 export function Sidebar({
@@ -70,9 +71,9 @@ export function Sidebar({
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {navItems.map((item) => (
-            <a
+            <Link
               key={item.label}
-              href="#"
+              href={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                 item.active
@@ -83,7 +84,7 @@ export function Sidebar({
             >
               <item.icon className="size-[18px] shrink-0" />
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 

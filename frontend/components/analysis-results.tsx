@@ -67,18 +67,31 @@ export function AnalysisResults() {
       {/* Top bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Button
-            variant="ghost"
-            size="sm"
-            nativeButton={false}
-            className="mb-3 -ml-2 text-muted-foreground"
-            render={
-              <Link href="/upload">
-                <ArrowLeft className="size-4" />
-                Back to upload
-              </Link>
-            }
-          />
+          <div className="mb-3 flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              nativeButton={false}
+              className="text-muted-foreground"
+              render={
+                <Link href="/upload">
+                  <ArrowLeft className="size-4" />
+                  Back to upload
+                </Link>
+              }
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              nativeButton={false}
+              className="text-muted-foreground"
+              render={
+                <Link href="/dashboard">
+                  Dashboard
+                </Link>
+              }
+            />
+          </div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Analysis results
           </h1>
