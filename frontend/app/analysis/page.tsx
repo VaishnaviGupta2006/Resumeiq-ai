@@ -1,13 +1,12 @@
+import { AppHeader } from '@/components/app-header'
+import { AnalysisResults } from '@/components/analysis-results'
+
 export default function AnalysisPage() {
   return (
     <div className="min-h-screen bg-background">
-      <main className="mx-auto max-w-6xl px-6 py-20">
-        <h1 className="text-4xl font-semibold tracking-tight text-foreground">
-          Analysis Results
-        </h1>
-        <p className="mt-4 text-muted-foreground">
-          Analysis page - placeholder for Phase 1
-        </p>
+      <AppHeader />
+      <main className="mx-auto max-w-6xl px-6 pb-24 pt-10">
+        <AnalysisResults />
       </main>
     </div>
   )
