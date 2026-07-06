@@ -11,10 +11,12 @@ import {
   Shield,
   Zap,
   Target,
+  AlertCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { uploadResume, type AnalysisData, type ResumeInfo } from '@/lib/api'
 
-type Stage = 'idle' | 'ready' | 'analyzing'
+type Stage = 'idle' | 'ready' | 'analyzing' | 'error'
 
 const highlights = [
   {
@@ -47,6 +49,8 @@ export function ResumeUpload() {
   const [isDragging, setIsDragging] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [role, setRole] = useState('Senior Product Designer')
+  const [jobDescription, setJobDescription] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   const handleFiles = useCallback((files: FileList | null) => {
     if (!files || files.length === 0) return
@@ -63,10 +67,31 @@ export function ResumeUpload() {
     [handleFiles],
   )
 
-  const startAnalysis = useCallback(() => {
+  const startAnalysis = useCallback(async () => {
+    if (!file) return
+
+    setError(null)
     setStage('analyzing')
-    setTimeout(() => router.push('/analysis'), 2200)
-  }, [router])
+
+    try {
+      const data = await uploadResume(file, jobDescription)
+
+      // Store analysis data in sessionStorage for the analysis page
+      sessionStorage.setItem('analysisData', JSON.stringify(data.analysis))
+      sessionStorage.setItem('resumeInfo', JSON.stringify({
+        filename: data.filename,
+        original_filename: data.original_filename,
+        file_size: data.file_size,
+        characters: data.characters,
+        preview: data.preview,
+      }))
+      router.push('/analysis')
+    } catch (err: any) {
+      console.error('Error uploading:', err)
+      setError(err.message || 'Failed to analyze resume')
+      setStage('error')
+    }
+  }, [file, jobDescription, router])
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
@@ -169,11 +194,50 @@ export function ResumeUpload() {
           />
         </div>
 
+        {/* Job description */}
+        <div className="mt-6">
+          <label
+            htmlFor="job-description"
+            className="mb-2 block text-sm font-medium text-foreground"
+          >
+            Paste Job Description{' '}
+            <span className="font-normal text-muted-foreground">(required for ATS scoring)</span>
+          </label>
+          <textarea
+            id="job-description"
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            placeholder="Paste the job description here to get an ATS score based on how well your resume matches..."
+            rows={6}
+            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition-shadow placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none"
+          />
+        </div>
+
+        {/* Error display */}
+        {error && (
+          <div className="mt-4 flex items-start gap-3 rounded-xl border border-chart-4/50 bg-chart-4/10 p-4">
+            <AlertCircle className="mt-0.5 size-5 shrink-0 text-chart-4" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-foreground">Upload failed</p>
+              <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+            </div>
+            <button
+              onClick={() => {
+                setError(null)
+                setStage('ready')
+              }}
+              className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        )}
+
         {/* Action */}
         <Button
           size="lg"
           className="mt-6 h-12 w-full rounded-full text-[15px] shadow-sm"
-          disabled={stage === 'idle' || stage === 'analyzing'}
+          disabled={stage === 'idle' || stage === 'analyzing' || stage === 'error'}
           onClick={startAnalysis}
         >
           {stage === 'analyzing' ? (

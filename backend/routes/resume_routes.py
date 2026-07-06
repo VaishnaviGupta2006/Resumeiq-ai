@@ -13,7 +13,7 @@ def health():
 
 @resume_bp.route('/upload', methods=['POST'])
 def upload_resume():
-    """Handle resume file upload, text extraction, and AI analysis."""
+    """Handle resume file upload, text extraction, and ATS matching with job description."""
     # Check if file is in request
     if 'file' not in request.files:
         return jsonify({
@@ -28,6 +28,15 @@ def upload_resume():
         return jsonify({
             "success": False,
             "error": "No file selected"
+        }), 400
+    
+    # Get job description from form data
+    job_description = request.form.get('job_description', '')
+    
+    if not job_description:
+        return jsonify({
+            "success": False,
+            "error": "Job description is required"
         }), 400
     
     # Save the file
@@ -52,8 +61,8 @@ def upload_resume():
         character_count = len(extracted_text)
         preview = extracted_text[:500] if extracted_text else ""
         
-        # Analyze with AI
-        analysis = analyze_resume(extracted_text)
+        # Analyze with AI comparing resume to job description
+        analysis = analyze_resume(extracted_text, job_description)
         
         return jsonify({
             "success": True,

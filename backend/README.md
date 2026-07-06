@@ -52,17 +52,7 @@ The server will start on `http://localhost:5000`
   "file_size": 12345,
   "characters": 2450,
   "preview": "First 500 characters of extracted text...",
-  "analysis": {
-    "ats_score": 85,
-    "summary": "Experienced software engineer with strong background in web development...",
-    "strengths": ["Strong technical skills", "Good communication", "Leadership experience"],
-    "weaknesses": ["Limited cloud experience", "Missing recent certifications"],
-    "missing_keywords": ["Kubernetes", "AWS", "Docker"],
-    "skills_detected": ["Python", "JavaScript", "React", "Flask"],
-    "improvement_suggestions": ["Add cloud certifications", "Highlight recent projects"],
-    "recommendation": "consider"
-  },
-  "message": "Resume uploaded, parsed, and analyzed successfully"
+  "message": "Resume uploaded and parsed successfully"
 }
 ```
 
