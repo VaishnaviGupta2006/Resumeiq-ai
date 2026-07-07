@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils"
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", active: true },
   { label: "Upload Resume", icon: Upload, href: "/upload" },
-  { label: "Resume History", icon: History, href: "/dashboard" },
+  { label: "Resume History", icon: History, href: "/history" },
   { label: "Job Match", icon: Target, href: "/dashboard" },
   { label: "Cover Letter Generator", icon: FileText, href: "/dashboard" },
   { label: "Profile", icon: User, href: "/dashboard" },
