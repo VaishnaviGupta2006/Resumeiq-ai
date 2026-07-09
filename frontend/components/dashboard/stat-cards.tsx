@@ -1,59 +1,53 @@
 import {
-  Gauge,
   FileCheck2,
   Target,
-  Zap,
   TrendingUp,
   TrendingDown,
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { DashboardStats } from "@/lib/api"
 
-type Stat = {
-  label: string
-  value: string
-  sub: string
-  delta: string
-  trend: "up" | "down"
-  icon: LucideIcon
+interface StatCardsProps {
+  data: DashboardStats
 }
 
-const stats: Stat[] = [
-  {
-    label: "ATS Score",
-    value: "92",
-    sub: "out of 100",
-    delta: "+9 pts",
-    trend: "up",
-    icon: Gauge,
-  },
-  {
-    label: "Total Resume Analyses",
-    value: "148",
-    sub: "this month",
-    delta: "+23",
-    trend: "up",
-    icon: FileCheck2,
-  },
-  {
-    label: "Job Match Score",
-    value: "87%",
-    sub: "avg. across saved jobs",
-    delta: "+4%",
-    trend: "up",
-    icon: Target,
-  },
-  {
-    label: "AI Credits Remaining",
-    value: "320",
-    sub: "of 500 credits",
-    delta: "-38",
-    trend: "down",
-    icon: Zap,
-  },
-]
+export function StatCards({ data }: StatCardsProps) {
+  const stats = [
+    {
+      label: "Total Resume Uploads",
+      value: data.total_resumes.toString(),
+      sub: "total uploads",
+      delta: "",
+      trend: "up" as const,
+      icon: FileCheck2,
+    },
+    {
+      label: "Total Analyses",
+      value: data.total_analyses.toString(),
+      sub: "completed analyses",
+      delta: "",
+      trend: "up" as const,
+      icon: Target,
+    },
+    {
+      label: "Average ATS Score",
+      value: data.average_ats_score.toString(),
+      sub: "out of 100",
+      delta: "",
+      trend: "up" as const,
+      icon: TrendingUp,
+    },
+    {
+      label: "Highest ATS Score",
+      value: data.highest_ats_score.toString(),
+      sub: "out of 100",
+      delta: "",
+      trend: "up" as const,
+      icon: TrendingUp,
+    },
+  ]
 
-export function StatCards() {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {stats.map((stat) => (
@@ -65,21 +59,23 @@ export function StatCards() {
             <div className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground">
               <stat.icon className="size-5" />
             </div>
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-                stat.trend === "up"
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted text-muted-foreground",
-              )}
-            >
-              {stat.trend === "up" ? (
-                <TrendingUp className="size-3" />
-              ) : (
-                <TrendingDown className="size-3" />
-              )}
-              {stat.delta}
-            </span>
+            {stat.delta && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+                  stat.trend === "up"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground",
+                )}
+              >
+                {stat.trend === "up" ? (
+                  <TrendingUp className="size-3" />
+                ) : (
+                  <TrendingDown className="size-3" />
+                )}
+                {stat.delta}
+              </span>
+            )}
           </div>
           <p className="mt-4 text-sm font-medium text-muted-foreground">
             {stat.label}

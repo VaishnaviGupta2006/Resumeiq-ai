@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { TopNav } from "@/components/dashboard/top-nav"
@@ -10,10 +10,56 @@ import { UploadsChart } from "@/components/dashboard/uploads-chart"
 import { RecentAnalyses } from "@/components/dashboard/recent-analyses"
 import { SavedJobs } from "@/components/dashboard/saved-jobs"
 import { QuickActions } from "@/components/dashboard/quick-actions"
-import { Upload } from "lucide-react"
+import { Upload, Loader2, AlertCircle } from "lucide-react"
+import { getDashboard, type DashboardStats } from "@/lib/api"
 
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    loadDashboardData()
+  }, [])
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await getDashboard()
+      setDashboardData(data)
+    } catch (err: any) {
+      setError(err.message || 'Failed to load dashboard data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center">
+          <AlertCircle className="mx-auto size-12 text-chart-4 mb-4" />
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <button
+            onClick={loadDashboardData}
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
@@ -42,24 +88,28 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <StatCards />
+          {dashboardData && (
+            <>
+              <StatCards data={dashboardData} />
 
-          {/* Charts */}
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <AtsChart />
-            <UploadsChart />
-          </div>
+              {/* Charts */}
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <AtsChart data={dashboardData.ats_trend} />
+                <UploadsChart />
+              </div>
 
-          {/* Sections */}
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-            <div className="xl:col-span-2">
-              <RecentAnalyses />
-            </div>
-            <div className="space-y-4">
-              <QuickActions />
-              <SavedJobs />
-            </div>
-          </div>
+              {/* Sections */}
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+                <div className="xl:col-span-2">
+                  <RecentAnalyses data={dashboardData.recent_uploads} />
+                </div>
+                <div className="space-y-4">
+                  <QuickActions />
+                  <SavedJobs />
+                </div>
+              </div>
+            </>
+          )}
         </main>
       </div>
     </div>

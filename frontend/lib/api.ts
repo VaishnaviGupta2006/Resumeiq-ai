@@ -96,6 +96,54 @@ export interface AnalysisDetailResponse {
   error?: string
 }
 
+export interface DashboardStats {
+  total_resumes: number
+  total_analyses: number
+  average_ats_score: number
+  highest_ats_score: number
+  lowest_ats_score: number
+  recommendations: {
+    hire: number
+    consider: number
+    reject: number
+  }
+  recent_uploads: Array<{
+    filename: string
+    ats_score: number
+    recommendation: string
+    created_at: string | null
+  }>
+  ats_trend: Array<{
+    date: string | null
+    score: number
+  }>
+}
+
+export interface DashboardResponse {
+  success: boolean
+  total_resumes: number
+  total_analyses: number
+  average_ats_score: number
+  highest_ats_score: number
+  lowest_ats_score: number
+  recommendations: {
+    hire: number
+    consider: number
+    reject: number
+  }
+  recent_uploads: Array<{
+    filename: string
+    ats_score: number
+    recommendation: string
+    created_at: string | null
+  }>
+  ats_trend: Array<{
+    date: string | null
+    score: number
+  }>
+  error?: string
+}
+
 class CustomApiError extends Error {
   constructor(message: string, public code?: string) {
     super(message)
@@ -187,6 +235,33 @@ export async function getAnalysisById(analysisId: number): Promise<AnalysisDetai
 
     if (!data.success) {
       throw new CustomApiError(data.error || 'Failed to fetch analysis', 'ANALYSIS_FAILED')
+    }
+
+    return data
+  } catch (error) {
+    if (error instanceof CustomApiError) {
+      throw error
+    }
+
+    if (error instanceof TypeError) {
+      throw new CustomApiError('Unable to connect to the server. Please make sure the backend is running.', 'NETWORK_ERROR')
+    }
+
+    throw new CustomApiError('An unexpected error occurred', 'UNKNOWN_ERROR')
+  }
+}
+
+export async function getDashboard(): Promise<DashboardResponse> {
+  try {
+    const response = await fetch(`${API_URL}/api/dashboard`)
+    const data: DashboardResponse = await response.json()
+
+    if (!response.ok) {
+      throw new CustomApiError(data.error || 'Failed to fetch dashboard data', response.status.toString())
+    }
+
+    if (!data.success) {
+      throw new CustomApiError(data.error || 'Failed to fetch dashboard data', 'DASHBOARD_FAILED')
     }
 
     return data

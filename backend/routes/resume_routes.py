@@ -206,3 +206,99 @@ def get_analysis_by_id(analysis_id):
             "success": False,
             "error": f"Database error: {str(e)}"
         }), 500
+
+@resume_bp.route('/dashboard', methods=['GET'])
+def get_dashboard():
+    """Get dashboard analytics data."""
+    try:
+        db = get_db()
+        
+        # Get total counts and score statistics using SQL aggregation
+        stats_query = """
+        SELECT 
+            COUNT(DISTINCT ru.id) as total_resumes,
+            COUNT(DISTINCT ar.id) as total_analyses,
+            AVG(ar.ats_score) as average_ats_score,
+            MAX(ar.ats_score) as highest_ats_score,
+            MIN(ar.ats_score) as lowest_ats_score
+        FROM resume_uploads ru
+        LEFT JOIN analysis_results ar ON ru.id = ar.upload_id
+        """
+        stats = db.execute_query(stats_query)[0]
+        
+        # Get recommendation counts
+        recommendations_query = """
+        SELECT 
+            recommendation,
+            COUNT(*) as count
+        FROM analysis_results
+        GROUP BY recommendation
+        """
+        rec_results = db.execute_query(recommendations_query)
+        recommendations = {
+            'hire': 0,
+            'consider': 0,
+            'reject': 0
+        }
+        for row in rec_results:
+            if row['recommendation'] in recommendations:
+                recommendations[row['recommendation']] = row['count']
+        
+        # Get recent uploads (last 5)
+        recent_query = """
+        SELECT 
+            ar.id,
+            ru.original_filename as filename,
+            ar.ats_score,
+            ar.recommendation,
+            ar.created_at
+        FROM analysis_results ar
+        JOIN resume_uploads ru ON ar.upload_id = ru.id
+        ORDER BY ar.created_at DESC
+        LIMIT 5
+        """
+        recent_results = db.execute_query(recent_query)
+        recent_uploads = []
+        for row in recent_results:
+            recent_uploads.append({
+                'filename': row['filename'],
+                'ats_score': row['ats_score'],
+                'recommendation': row['recommendation'],
+                'created_at': row['created_at'].isoformat() if row['created_at'] else None
+            })
+        
+        # Get ATS trend (last 30 days, grouped by day)
+        trend_query = """
+        SELECT 
+            DATE(ar.created_at) as date,
+            AVG(ar.ats_score) as score
+        FROM analysis_results ar
+        WHERE ar.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY DATE(ar.created_at)
+        ORDER BY date ASC
+        """
+        trend_results = db.execute_query(trend_query)
+        ats_trend = []
+        for row in trend_results:
+            ats_trend.append({
+                'date': row['date'].isoformat() if row['date'] else None,
+                'score': round(row['score'], 1) if row['score'] else 0
+            })
+        
+        return jsonify({
+            "success": True,
+            "total_resumes": stats['total_resumes'] or 0,
+            "total_analyses": stats['total_analyses'] or 0,
+            "average_ats_score": round(stats['average_ats_score'], 1) if stats['average_ats_score'] else 0,
+            "highest_ats_score": stats['highest_ats_score'] or 0,
+            "lowest_ats_score": stats['lowest_ats_score'] or 0,
+            "recommendations": recommendations,
+            "recent_uploads": recent_uploads,
+            "ats_trend": ats_trend
+        }), 200
+        
+    except DatabaseError as e:
+        return jsonify({
+            "success": False,
+            "error": f"Database error: {str(e)}"
+        }), 500

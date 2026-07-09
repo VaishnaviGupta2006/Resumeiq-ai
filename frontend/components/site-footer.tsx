@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Sparkles, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -20,6 +21,13 @@ const columns = [
   },
 ]
 
+const quickLinks = [
+  { label: "Home", href: "/" },
+  { label: "Upload Resume", href: "/upload" },
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "History", href: "/history" },
+]
+
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-secondary/30">
@@ -37,9 +45,11 @@ export function SiteFooter() {
             Run your free analysis today and see exactly what&apos;s holding your resume back.
           </p>
           <div className="mt-8 flex justify-center">
-            <Button size="lg" variant="secondary" className="group rounded-full px-6 text-base">
-              Analyze Resume
-              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            <Button size="lg" variant="secondary" className="group rounded-full px-6 text-base" asChild>
+              <Link href="/upload">
+                Analyze Resume
+                <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
             </Button>
           </div>
         </div>
@@ -49,12 +59,12 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
         <div className="grid gap-10 border-t border-border py-12 md:grid-cols-6">
           <div className="md:col-span-2">
-            <a href="#" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Sparkles className="h-4 w-4" />
               </span>
               <span className="text-lg font-semibold tracking-tight">ResumeIQ AI</span>
-            </a>
+            </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               Analyze. Optimize. Get Hired. The AI copilot for your job search.
             </p>
@@ -68,7 +78,7 @@ export function SiteFooter() {
                   <li key={link}>
                     <a
                       href="#"
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      className="text-sm text-muted-foreground transition-colors hover:text-foreground hover:underline decoration-2 underline-offset-4"
                     >
                       {link}
                     </a>
@@ -77,6 +87,22 @@ export function SiteFooter() {
               </ul>
             </div>
           ))}
+        </div>
+
+        {/* Quick Links */}
+        <div className="border-t border-border pt-8">
+          <p className="mb-4 text-sm font-semibold text-foreground">Quick Links</p>
+          <div className="flex flex-wrap gap-4">
+            {quickLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground hover:underline decoration-2 underline-offset-4"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">

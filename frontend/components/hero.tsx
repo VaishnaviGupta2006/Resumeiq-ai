@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { ArrowRight, CheckCircle2, Sparkles, FileText, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -36,20 +37,30 @@ export function Hero() {
           </p>
 
           <div className="animate-rise mt-8 flex flex-col items-center justify-center gap-3 [animation-delay:180ms] sm:flex-row">
+             <Link href="/upload">
             <Button
               size="lg"
               className="group rounded-full px-6 text-base transition-transform hover:scale-[1.03] active:scale-95"
+              
             >
-              Analyze Resume
-              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+             
+                Analyze Resume
+                <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              
             </Button>
+            </Link>
+            <Link href="/dashboard">
             <Button
               size="lg"
               variant="outline"
               className="rounded-full px-6 text-base transition-transform hover:scale-[1.03] active:scale-95"
+              
             >
-              Watch demo
+              
+                View Dashboard
+              
             </Button>
+            </Link>
           </div>
 
           <div className="animate-rise mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground [animation-delay:240ms]">
