@@ -170,84 +170,16 @@ export function AnalysisResults({ analysisId }: AnalysisResultsProps) {
       // Sizing the iframe to the actual rendered content fixes this.
       reportFrame.style.height = `${reportContainer.scrollHeight}px`
       
-      // Clone the container for color sanitization. Appended back into the
-      // iframe's own document (not the host document) so it stays isolated
-      // from the app's Tailwind stylesheet.
-      const clonedContainer = reportContainer.cloneNode(true) as HTMLElement
-      clonedContainer.style.position = 'fixed'
-      clonedContainer.style.top = '-9999px'
-      clonedContainer.style.left = '-9999px'
-      frameDoc.body.appendChild(clonedContainer)
-      
-      // Function to check if a color value uses unsupported functions
-      const hasUnsupportedColorFunction = (color: string): boolean => {
-        return color.includes('lab(') || 
-               color.includes('oklch(') || 
-               color.includes('lch(') || 
-               color.includes('color-mix(') ||
-               color.includes('var(')
-      }
-      
-      // Function to convert color to safe RGB/HEX
-      const convertToSafeColor = (element: HTMLElement, property: string): void => {
-        const computed = window.getComputedStyle(element)
-        const color = computed.getPropertyValue(property)
-        
-        if (hasUnsupportedColorFunction(color)) {
-          // Create a temporary element to get the resolved color
-          const temp = document.createElement('div')
-          temp.style.color = color
-          temp.style.display = 'none'
-          document.body.appendChild(temp)
-          const resolved = window.getComputedStyle(temp).color
-          document.body.removeChild(temp)
-          
-          // If resolved color is still unsupported, use fallback
-          if (hasUnsupportedColorFunction(resolved)) {
-            element.style.setProperty(property, '#000000', 'important')
-          } else {
-            element.style.setProperty(property, resolved, 'important')
-          }
-        }
-      }
-      
-      // Recursively sanitize all elements
-      const sanitizeColors = (element: HTMLElement): void => {
-        const colorProperties = [
-          'color',
-          'backgroundColor',
-          'borderColor',
-          'outlineColor',
-          'textDecorationColor',
-          'borderTopColor',
-          'borderRightColor',
-          'borderBottomColor',
-          'borderLeftColor'
-        ]
-        
-        colorProperties.forEach(prop => {
-          convertToSafeColor(element, prop)
-        })
-        
-        // Recursively process children
-        Array.from(element.children).forEach(child => {
-          sanitizeColors(child as HTMLElement)
-        })
-      }
-      
-      // Sanitize the cloned container
-      sanitizeColors(clonedContainer)
-      
-      // Capture the sanitized report as canvas
-      const canvas = await html2canvas(clonedContainer, {
+      // Since we're using an iframe to isolate from the host page's Tailwind
+      // stylesheet, and ReportTemplate already uses inline hex/rgb colors,
+      // we don't need the color sanitization logic. Capture the original
+      // container directly.
+      const canvas = await html2canvas(reportContainer, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff'
       })
-      
-      // Remove the cloned container
-      frameDoc.body.removeChild(clonedContainer)
       
       // Create PDF from canvas
       const imgData = canvas.toDataURL('image/png')

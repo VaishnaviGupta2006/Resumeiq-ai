@@ -174,11 +174,15 @@ export function ReportTemplate({ analysis, resumeInfo, jobDescription }: ReportT
 
   // Builds paired rows for a two-column comparison table from two arrays of
   // possibly different lengths (used for Skills / Keywords comparisons).
+  // Limits to top 8 items per column to keep the PDF concise.
   const buildComparisonRows = (left: string[] = [], right: string[] = []) => {
-    const rowCount = Math.max(left.length, right.length)
+    const MAX_ITEMS = 8
+    const leftLimited = left.slice(0, MAX_ITEMS)
+    const rightLimited = right.slice(0, MAX_ITEMS)
+    const rowCount = Math.max(leftLimited.length, rightLimited.length)
     return Array.from({ length: rowCount }, (_, i) => ({
-      left: left[i] ?? null,
-      right: right[i] ?? null,
+      left: leftLimited[i] ?? null,
+      right: rightLimited[i] ?? null,
     }))
   }
 
@@ -378,40 +382,42 @@ export function ReportTemplate({ analysis, resumeInfo, jobDescription }: ReportT
 
       {/* ---------------- Strengths & Weaknesses ---------------- */}
       {((analysis.strengths && analysis.strengths.length > 0) || (analysis.weaknesses && analysis.weaknesses.length > 0)) && (
-        <div style={{ ...sectionWrapStyle, display: 'flex', gap: '16px' }}>
-          {analysis.strengths && analysis.strengths.length > 0 && (
-            <div style={{ flex: 1 }}>
-              <div style={sectionTitleStyle}>
-                <CheckCircle2 style={{ width: '16px', height: '16px', color: colors.green }} />
-                Strengths
+        <div style={sectionWrapStyle}>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            {analysis.strengths && analysis.strengths.length > 0 && (
+              <div style={{ flex: 1 }}>
+                <div style={sectionTitleStyle}>
+                  <CheckCircle2 style={{ width: '16px', height: '16px', color: colors.green }} />
+                  Strengths
+                </div>
+                <div style={{ backgroundColor: colors.greenBg, border: `1px solid ${colors.greenBorder}`, borderRadius: '10px', padding: '14px' }}>
+                  {analysis.strengths.map((strength, index) => (
+                    <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: index === analysis.strengths.length - 1 ? 0 : '10px' }}>
+                      <CheckCircle2 style={{ width: '15px', height: '15px', color: colors.green, flexShrink: 0, marginTop: '1px' }} />
+                      <span style={{ fontSize: '13px', color: colors.body, lineHeight: 1.5 }}>{strength}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ backgroundColor: colors.greenBg, border: `1px solid ${colors.greenBorder}`, borderRadius: '10px', padding: '14px' }}>
-                {analysis.strengths.map((strength, index) => (
-                  <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: index === analysis.strengths.length - 1 ? 0 : '10px' }}>
-                    <CheckCircle2 style={{ width: '15px', height: '15px', color: colors.green, flexShrink: 0, marginTop: '1px' }} />
-                    <span style={{ fontSize: '13px', color: colors.body, lineHeight: 1.5 }}>{strength}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
 
-          {analysis.weaknesses && analysis.weaknesses.length > 0 && (
-            <div style={{ flex: 1 }}>
-              <div style={sectionTitleStyle}>
-                <AlertTriangle style={{ width: '16px', height: '16px', color: colors.red }} />
-                Areas for Improvement
+            {analysis.weaknesses && analysis.weaknesses.length > 0 && (
+              <div style={{ flex: 1 }}>
+                <div style={sectionTitleStyle}>
+                  <AlertTriangle style={{ width: '16px', height: '16px', color: colors.red }} />
+                  Areas for Improvement
+                </div>
+                <div style={{ backgroundColor: colors.redBg, border: `1px solid ${colors.redBorder}`, borderRadius: '10px', padding: '14px' }}>
+                  {analysis.weaknesses.map((weakness, index) => (
+                    <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: index === analysis.weaknesses.length - 1 ? 0 : '10px' }}>
+                      <AlertTriangle style={{ width: '15px', height: '15px', color: colors.red, flexShrink: 0, marginTop: '1px' }} />
+                      <span style={{ fontSize: '13px', color: colors.body, lineHeight: 1.5 }}>{weakness}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ backgroundColor: colors.redBg, border: `1px solid ${colors.redBorder}`, borderRadius: '10px', padding: '14px' }}>
-                {analysis.weaknesses.map((weakness, index) => (
-                  <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: index === analysis.weaknesses.length - 1 ? 0 : '10px' }}>
-                    <AlertTriangle style={{ width: '15px', height: '15px', color: colors.red, flexShrink: 0, marginTop: '1px' }} />
-                    <span style={{ fontSize: '13px', color: colors.body, lineHeight: 1.5 }}>{weakness}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
