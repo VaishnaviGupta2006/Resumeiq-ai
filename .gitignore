@@ -39,5 +39,6 @@ venv/
 dist/
 build/
 
-# Uploaded resumes
-backend/uploads/
+
+# Uploaded resume files
+backend/uploads/*
