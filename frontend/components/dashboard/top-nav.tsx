@@ -33,11 +33,11 @@ export function TopNav({ onMenuClick }: { onMenuClick: () => void }) {
 
         <div className="flex items-center gap-2.5 rounded-xl border border-border bg-card py-1.5 pl-1.5 pr-3">
           <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-primary-foreground">
-            AK
+            U
           </div>
           <div className="hidden leading-tight sm:block">
-            <p className="text-xs font-semibold text-foreground">Alex Kim</p>
-            <p className="text-[11px] text-muted-foreground">Pro plan</p>
+            <p className="text-xs font-semibold text-foreground">User</p>
+            <p className="text-[11px] text-muted-foreground">Free plan</p>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Upload, ScanLine, Target, FileText, ArrowUpRight } from "lucide-react"
+import { Upload, History, ArrowUpRight } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 type Action = {
@@ -11,14 +11,7 @@ type Action = {
 
 const actions: Action[] = [
   { label: "Upload Resume", desc: "Add a new document", icon: Upload, href: "/upload" },
-  { label: "Analyze Resume", desc: "Run an ATS scan", icon: ScanLine, href: "/analysis" },
-  { label: "Match Job Description", desc: "Compare to a role", icon: Target, href: "/dashboard" },
-  {
-    label: "Generate Cover Letter",
-    desc: "AI-written draft",
-    icon: FileText,
-    href: "/dashboard",
-  },
+  { label: "View History", desc: "See past analyses", icon: History, href: "/history" },
 ]
 
 export function QuickActions() {

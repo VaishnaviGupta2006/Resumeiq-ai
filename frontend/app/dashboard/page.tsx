@@ -73,7 +73,7 @@ export default function DashboardPage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-balance text-foreground">
-                Welcome back, Alex
+                Dashboard
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 Here&apos;s how your resumes are performing today.
@@ -95,7 +95,7 @@ export default function DashboardPage() {
               {/* Charts */}
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                 <AtsChart data={dashboardData.ats_trend} />
-                <UploadsChart />
+                <UploadsChart data={dashboardData.weekly_uploads} />
               </div>
 
               {/* Sections */}

@@ -30,7 +30,7 @@ const quickLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border bg-secondary/30">
+    <footer id="contact" className="border-t border-border bg-secondary/30">
       {/* CTA */}
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="relative overflow-hidden rounded-3xl bg-primary px-6 py-14 text-center shadow-xl sm:px-12">

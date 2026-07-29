@@ -13,10 +13,26 @@ interface StatCardsProps {
 }
 
 export function StatCards({ data }: StatCardsProps) {
+  const hasData = data.total_resumes > 0 || data.total_analyses > 0
+
+  if (!hasData) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <div className="flex flex-col items-center justify-center text-center">
+          <FileCheck2 className="size-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">No data yet</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Upload your first resume to see your statistics
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   const stats = [
     {
       label: "Total Resume Uploads",
-      value: data.total_resumes.toString(),
+      value: (data.total_resumes || 0).toString(),
       sub: "total uploads",
       delta: "",
       trend: "up" as const,
@@ -24,7 +40,7 @@ export function StatCards({ data }: StatCardsProps) {
     },
     {
       label: "Total Analyses",
-      value: data.total_analyses.toString(),
+      value: (data.total_analyses || 0).toString(),
       sub: "completed analyses",
       delta: "",
       trend: "up" as const,
@@ -32,7 +48,7 @@ export function StatCards({ data }: StatCardsProps) {
     },
     {
       label: "Average ATS Score",
-      value: data.average_ats_score.toString(),
+      value: (isNaN(data.average_ats_score) ? 0 : data.average_ats_score).toString(),
       sub: "out of 100",
       delta: "",
       trend: "up" as const,
@@ -40,7 +56,7 @@ export function StatCards({ data }: StatCardsProps) {
     },
     {
       label: "Highest ATS Score",
-      value: data.highest_ats_score.toString(),
+      value: (isNaN(data.highest_ats_score) ? 0 : data.highest_ats_score).toString(),
       sub: "out of 100",
       delta: "",
       trend: "up" as const,

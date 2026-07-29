@@ -117,6 +117,10 @@ export interface DashboardStats {
     date: string | null
     score: number
   }>
+  weekly_uploads: Array<{
+    day: string
+    uploads: number
+  }>
 }
 
 export interface DashboardResponse {
@@ -141,6 +145,10 @@ export interface DashboardResponse {
     date: string | null
     score: number
   }>
+  weekly_uploads: Array<{
+    day: string
+    uploads: number
+  }>
   error?: string
 }
 
@@ -153,19 +161,17 @@ class CustomApiError extends Error {
 
 export async function uploadResume(
   file: File,
-  jobDescription: string
+  jobDescription?: string
 ): Promise<UploadResponse> {
   if (!file) {
     throw new CustomApiError('Please select a resume file', 'NO_FILE')
   }
 
-  if (!jobDescription.trim()) {
-    throw new CustomApiError('Please paste a job description', 'NO_JOB_DESCRIPTION')
-  }
-
   const formData = new FormData()
   formData.append('file', file)
-  formData.append('job_description', jobDescription)
+  if (jobDescription && jobDescription.trim()) {
+    formData.append('job_description', jobDescription)
+  }
 
   try {
     const response = await fetch(`${API_URL}/api/upload`, {
@@ -262,6 +268,36 @@ export async function getDashboard(): Promise<DashboardResponse> {
 
     if (!data.success) {
       throw new CustomApiError(data.error || 'Failed to fetch dashboard data', 'DASHBOARD_FAILED')
+    }
+
+    return data
+  } catch (error) {
+    if (error instanceof CustomApiError) {
+      throw error
+    }
+
+    if (error instanceof TypeError) {
+      throw new CustomApiError('Unable to connect to the server. Please make sure the backend is running.', 'NETWORK_ERROR')
+    }
+
+    throw new CustomApiError('An unexpected error occurred', 'UNKNOWN_ERROR')
+  }
+}
+
+export async function deleteAnalysis(analysisId: number): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await fetch(`${API_URL}/api/analysis/${analysisId}`, {
+      method: 'DELETE',
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new CustomApiError(data.error || 'Failed to delete analysis', response.status.toString())
+    }
+
+    if (!data.success) {
+      throw new CustomApiError(data.error || 'Failed to delete analysis', 'DELETE_FAILED')
     }
 
     return data

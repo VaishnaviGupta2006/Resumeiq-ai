@@ -26,5 +26,18 @@ Thumbs.db
 # Python
 __pycache__/
 venv/
+
+# Python cache
+*.pyc
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+
 # Uploaded resumes
 backend/uploads/

@@ -42,7 +42,7 @@ export function AtsChart({ data }: AtsChartProps) {
     )
   }
 
-  const values = chartData.map((d) => d.score)
+  const values = chartData.map((d) => isNaN(d.score) ? 0 : d.score)
   const min = 50
   const max = 100
   const stepX = chartData.length > 1 ? (W - PAD_X * 2) / (chartData.length - 1) : 0

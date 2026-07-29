@@ -10,20 +10,11 @@ interface UploadsChartProps {
 export function UploadsChart({ data }: UploadsChartProps) {
   const [hover, setHover] = useState<number | null>(null)
 
-  // Use mock data if no data provided (for now)
-  const chartData = data || [
-    { day: 'Mon', uploads: 3 },
-    { day: 'Tue', uploads: 5 },
-    { day: 'Wed', uploads: 2 },
-    { day: 'Thu', uploads: 4 },
-    { day: 'Fri', uploads: 6 },
-    { day: 'Sat', uploads: 1 },
-    { day: 'Sun', uploads: 0 },
-  ]
+  const chartData = data || []
 
-  const validData = chartData.filter(d => d.uploads >= 0)
+  const validData = chartData.filter(d => d.uploads >= 0 && !isNaN(d.uploads))
   const max = validData.length > 0 ? Math.max(...validData.map((d) => d.uploads)) : 1
-  const total = validData.reduce((sum, d) => sum + d.uploads, 0)
+  const total = validData.reduce((sum, d) => sum + (isNaN(d.uploads) ? 0 : d.uploads), 0)
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">

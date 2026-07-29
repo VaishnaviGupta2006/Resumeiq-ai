@@ -10,9 +10,10 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
+  Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { getHistory, getAnalysisById, type HistoryItem } from '@/lib/api'
+import { getHistory, getAnalysisById, deleteAnalysis, type HistoryItem } from '@/lib/api'
 
 function getScoreColor(score: number) {
   if (score >= 80) return 'text-chart-3'
@@ -42,6 +43,7 @@ export function HistoryList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [loadingId, setLoadingId] = useState<number | null>(null)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   useEffect(() => {
     loadHistory()
@@ -60,27 +62,24 @@ export function HistoryList() {
     }
   }
 
-  const handleViewDetails = async (item: HistoryItem) => {
+  const handleViewDetails = (item: HistoryItem) => {
+    router.push(`/analysis?id=${item.id}`)
+  }
+
+  const handleDelete = async (item: HistoryItem) => {
+    if (!confirm(`Are you sure you want to delete "${item.original_filename}"? This action cannot be undone.`)) {
+      return
+    }
+
     try {
-      setLoadingId(item.id)
-      const response = await getAnalysisById(item.id)
-      
-      // Store analysis data in sessionStorage
-      sessionStorage.setItem('analysisData', JSON.stringify(response.analysis))
-      sessionStorage.setItem('resumeInfo', JSON.stringify({
-        filename: response.filename,
-        original_filename: response.original_filename,
-        file_size: response.file_size,
-        characters: response.extracted_text.length,
-        preview: response.extracted_text.substring(0, 500),
-      }))
-      
-      router.push('/analysis')
+      setDeletingId(item.id)
+      await deleteAnalysis(item.id)
+      // Refresh history after successful deletion
+      await loadHistory()
     } catch (err: any) {
-      console.error('Failed to load analysis:', err)
-      alert('Failed to load analysis details')
+      setError(err.message || 'Failed to delete analysis')
     } finally {
-      setLoadingId(null)
+      setDeletingId(null)
     }
   }
 
@@ -155,23 +154,42 @@ export function HistoryList() {
                   </div>
                 </div>
               </div>
-              <Button
-                onClick={() => handleViewDetails(item)}
-                disabled={loadingId === item.id}
-                className="shrink-0"
-              >
-                {loadingId === item.id ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    View Details
-                    <ArrowRight className="size-4" />
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => handleDelete(item)}
+                  disabled={deletingId === item.id}
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0 text-muted-foreground hover:text-chart-4 hover:bg-chart-4/10"
+                >
+                  {deletingId === item.id ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="size-4" />
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => handleViewDetails(item)}
+                  disabled={loadingId === item.id}
+                  className="shrink-0"
+                >
+                  {loadingId === item.id ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      View Details
+                      <ArrowRight className="size-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         ))}

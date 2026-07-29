@@ -3,7 +3,7 @@ from flask import Blueprint, request, jsonify
 from config import Config
 from utils.file_helpers import save_uploaded_file
 from services.text_extractor import extract_text, UnsupportedFileTypeError, TextExtractionError
-from services.ai_analyzer import analyze_resume, AIAnalysisError, JSONParseError
+from services.ai_analyzer import analyze_resume, analyze_resume_general, validate_resume, AIAnalysisError, JSONParseError, ResumeValidationError
 from database.db import get_db, DatabaseError
 
 resume_bp = Blueprint('resume', __name__)
@@ -11,6 +11,63 @@ resume_bp = Blueprint('resume', __name__)
 @resume_bp.route('/health', methods=['GET'])
 def health():
     return {"status": "ok", "message": "Resume routes working"}
+
+@resume_bp.route('/analysis/<int:analysis_id>', methods=['DELETE'])
+def delete_analysis(analysis_id):
+    """Delete an analysis and its associated resume upload."""
+    try:
+        db = get_db()
+        
+        # First get the upload_id and filename from the analysis
+        get_upload_query = """
+        SELECT ar.upload_id, ru.filename 
+        FROM analysis_results ar
+        JOIN resume_uploads ru ON ar.upload_id = ru.id
+        WHERE ar.id = %s
+        """
+        upload_result = db.execute_query(get_upload_query, (analysis_id,))
+        
+        if not upload_result:
+            return jsonify({
+                "success": False,
+                "error": "Analysis not found"
+            }), 404
+        
+        upload_id = upload_result[0]['upload_id']
+        filename = upload_result[0]['filename']
+        
+        # Delete the analysis record
+        delete_analysis_query = "DELETE FROM analysis_results WHERE id = %s"
+        db.execute_query(delete_analysis_query, (analysis_id,))
+        
+        # Delete the resume upload record
+        delete_upload_query = "DELETE FROM resume_uploads WHERE id = %s"
+        db.execute_query(delete_upload_query, (upload_id,))
+        
+        # Delete the physical file if it exists
+        try:
+            file_path = os.path.join(Config.UPLOAD_FOLDER, filename)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            # Log but don't fail the operation if file deletion fails
+            print(f"Warning: Failed to delete file: {e}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Analysis and resume deleted successfully"
+        })
+        
+    except DatabaseError as e:
+        return jsonify({
+            "success": False,
+            "error": f"Database error: {str(e)}"
+        }), 500
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Failed to delete analysis: {str(e)}"
+        }), 500
 
 @resume_bp.route('/upload', methods=['POST'])
 def upload_resume():
@@ -31,14 +88,8 @@ def upload_resume():
             "error": "No file selected"
         }), 400
     
-    # Get job description from form data
+    # Get job description from form data (optional)
     job_description = request.form.get('job_description', '')
-    
-    if not job_description:
-        return jsonify({
-            "success": False,
-            "error": "Job description is required"
-        }), 400
     
     # Save the file
     unique_filename, error = save_uploaded_file(file, Config.UPLOAD_FOLDER)
@@ -62,8 +113,14 @@ def upload_resume():
         character_count = len(extracted_text)
         preview = extracted_text[:500] if extracted_text else ""
         
-        # Analyze with AI comparing resume to job description
-        analysis = analyze_resume(extracted_text, job_description)
+        # Validate the resume before analysis
+        validate_resume(extracted_text)
+        
+        # Analyze with AI - use general analysis if no job description, otherwise match against job
+        if job_description and job_description.strip():
+            analysis = analyze_resume(extracted_text, job_description)
+        else:
+            analysis = analyze_resume_general(extracted_text)
         
         # Save to database
         db = get_db()
@@ -109,6 +166,11 @@ def upload_resume():
             "error": str(e)
         }), 400
     except TextExtractionError as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 400
+    except ResumeValidationError as e:
         return jsonify({
             "success": False,
             "error": str(e)
@@ -273,16 +335,53 @@ def get_dashboard():
             DATE(ar.created_at) as date,
             AVG(ar.ats_score) as score
         FROM analysis_results ar
-        WHERE ar.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        WHERE ar.created_at IS NOT NULL
         GROUP BY DATE(ar.created_at)
-        ORDER BY date ASC
+        ORDER BY DATE(ar.created_at) ASC
+        LIMIT 30
         """
         trend_results = db.execute_query(trend_query)
         ats_trend = []
         for row in trend_results:
             ats_trend.append({
                 'date': row['date'].isoformat() if row['date'] else None,
-                'score': round(row['score'], 1) if row['score'] else 0
+                'score': round(float(row['score']), 1) if row['score'] is not None else 0
+            })
+
+        # Get weekly uploads (last 7 days, grouped by day)
+        weekly_query = """
+        SELECT 
+            DAYNAME(ru.uploaded_at) as day,
+            COUNT(*) as uploads
+        FROM resume_uploads ru
+        WHERE ru.uploaded_at IS NOT NULL
+        GROUP BY DAYNAME(ru.uploaded_at)
+        ORDER BY FIELD(day, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
+        """
+        weekly_results = db.execute_query(weekly_query)
+        
+        # Map to ensure all days are present
+        day_order = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        day_map = {
+            'Monday': 'Mon',
+            'Tuesday': 'Tue',
+            'Wednesday': 'Wed',
+            'Thursday': 'Thu',
+            'Friday': 'Fri',
+            'Saturday': 'Sat',
+            'Sunday': 'Sun'
+        }
+        
+        weekly_uploads_dict = {}
+        for row in weekly_results:
+            day_short = day_map.get(row['day'], 'Unknown')
+            weekly_uploads_dict[day_short] = row['uploads']
+        
+        weekly_uploads = []
+        for day in day_order:
+            weekly_uploads.append({
+                'day': day,
+                'uploads': weekly_uploads_dict.get(day, 0)
             })
         
         return jsonify({
@@ -294,7 +393,8 @@ def get_dashboard():
             "lowest_ats_score": stats['lowest_ats_score'] or 0,
             "recommendations": recommendations,
             "recent_uploads": recent_uploads,
-            "ats_trend": ats_trend
+            "ats_trend": ats_trend,
+            "weekly_uploads": weekly_uploads
         }), 200
         
     except DatabaseError as e:

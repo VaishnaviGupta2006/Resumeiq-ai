@@ -57,6 +57,10 @@ class Database:
         except Error as e:
             self.connection.rollback()
             raise DatabaseError(f"Query execution failed: {str(e)}")
+        finally:
+            # Ensure cursor is closed even if an error occurs
+            if 'cursor' in locals():
+                cursor.close()
     
     def initialize_schema(self):
         """Create tables if they don't exist."""

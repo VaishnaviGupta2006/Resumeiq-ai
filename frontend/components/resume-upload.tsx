@@ -42,7 +42,11 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function ResumeUpload() {
+interface ResumeUploadProps {
+  requireJobDescription?: boolean
+}
+
+export function ResumeUpload({ requireJobDescription = false }: ResumeUploadProps) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [stage, setStage] = useState<Stage>('idle')
@@ -70,28 +74,41 @@ export function ResumeUpload() {
   const startAnalysis = useCallback(async () => {
     if (!file) return
 
+    if (requireJobDescription && !jobDescription.trim()) {
+      setError('Please paste a job description')
+      return
+    }
+
     setError(null)
     setStage('analyzing')
 
     try {
       const data = await uploadResume(file, jobDescription)
 
-      // Store analysis data in sessionStorage for the analysis page
-      sessionStorage.setItem('analysisData', JSON.stringify(data.analysis))
-      sessionStorage.setItem('resumeInfo', JSON.stringify({
-        filename: data.filename,
-        original_filename: data.original_filename,
-        file_size: data.file_size,
-        characters: data.characters,
-        preview: data.preview,
-      }))
-      router.push('/analysis')
+      // Redirect to analysis page with analysis_id
+      if (data.analysis_id) {
+        router.push(`/analysis?id=${data.analysis_id}`)
+      } else {
+        setError('Analysis ID not returned from server')
+        setStage('error')
+      }
     } catch (err: any) {
-      console.error('Error uploading:', err)
+      // Only log unexpected errors (network failures, server crashes, unhandled exceptions)
+      // Expected validation errors (resume validation, file selection, job description) are displayed in UI only
+      const isUnexpectedError = 
+        err.code === 'NETWORK_ERROR' || 
+        err.code === 'UNKNOWN_ERROR' ||
+        !err.code || // No error code means unexpected
+        (typeof err.code === 'string' && err.code.startsWith('5')) // 5xx server errors
+      
+      if (isUnexpectedError) {
+        console.error('Unexpected error uploading:', err)
+      }
+      
       setError(err.message || 'Failed to analyze resume')
       setStage('error')
     }
-  }, [file, jobDescription, router])
+  }, [file, jobDescription, router, requireJobDescription])
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
@@ -201,13 +218,19 @@ export function ResumeUpload() {
             className="mb-2 block text-sm font-medium text-foreground"
           >
             Paste Job Description{' '}
-            <span className="font-normal text-muted-foreground">(required for ATS scoring)</span>
+            <span className="font-normal text-muted-foreground">
+              {requireJobDescription ? '(required)' : '(optional)'}
+            </span>
           </label>
           <textarea
             id="job-description"
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
-            placeholder="Paste the job description here to get an ATS score based on how well your resume matches..."
+            placeholder={
+              requireJobDescription
+                ? "Paste the job description here to get an ATS score based on how well your resume matches..."
+                : "Paste a job description here to compare your resume against (optional)"
+            }
             rows={6}
             className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition-shadow placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none"
           />

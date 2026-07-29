@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Upload", href: "/upload" },
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "History", href: "/history" },
+  { label: "Home", href: "#home" },
+  { label: "Features", href: "#features" },
+  { label: "About", href: "#about" },
+  { label: "Contact", href: "#contact" },
 ]
 
 export function SiteHeader() {

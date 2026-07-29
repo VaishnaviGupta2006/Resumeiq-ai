@@ -1,27 +1,28 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
   Upload,
   History,
+  Sparkles,
+  X,
   Target,
   FileText,
   User,
   Settings,
-  Sparkles,
-  X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", active: true },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Upload Resume", icon: Upload, href: "/upload" },
   { label: "Resume History", icon: History, href: "/history" },
-  { label: "Job Match", icon: Target, href: "/dashboard" },
-  { label: "Cover Letter Generator", icon: FileText, href: "/dashboard" },
-  { label: "Profile", icon: User, href: "/dashboard" },
-  { label: "Settings", icon: Settings, href: "/dashboard" },
+  { label: "Job Match", icon: Target, href: "/job-match" },
+  { label: "Cover Letter Generator", icon: FileText, href: "/cover-letter" },
+  { label: "Profile", icon: User, href: "/profile" },
+  { label: "Settings", icon: Settings, href: "/settings" },
 ]
 
 export function Sidebar({
@@ -31,6 +32,8 @@ export function Sidebar({
   open: boolean
   onClose: () => void
 }) {
+  const pathname = usePathname()
+
   return (
     <>
       {/* Mobile overlay */}
@@ -70,22 +73,25 @@ export function Sidebar({
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                item.active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
-              )}
-              aria-current={item.active ? "page" : undefined}
-            >
-              <item.icon className="size-[18px] shrink-0" />
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+                )}
+                aria-current={isActive ? "page" : undefined}
+              >
+                <item.icon className="size-[18px] shrink-0" />
+                {item.label}
+              </Link>
+            )
+          })}
         </nav>
 
         <div className="p-3">

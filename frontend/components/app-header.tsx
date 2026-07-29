@@ -23,10 +23,10 @@ export function AppHeader() {
             Upload
           </Link>
           <Link
-            href="/analysis"
+            href="/history"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            Analysis
+            History
           </Link>
           <Link
             href="/dashboard"
@@ -37,19 +37,25 @@ export function AppHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="lg"
-            nativeButton={false}
-            className="hidden text-muted-foreground sm:inline-flex"
-            render={<Link href="/dashboard">Sign in</Link>}
-          />
-          <Button
-            size="lg"
-            nativeButton={false}
-            className="rounded-full px-4 shadow-sm"
-            render={<Link href="/upload">Get started</Link>}
-          />
+          <Link href="/dashboard">
+            <Button
+              variant="ghost"
+              size="lg"
+              className="hidden text-muted-foreground sm:inline-flex"
+              asChild
+            >
+              <span>Sign in</span>
+            </Button>
+          </Link>
+          <Link href="/upload">
+            <Button
+              size="lg"
+              className="rounded-full px-4 shadow-sm"
+              asChild
+            >
+              <span>Get started</span>
+            </Button>
+          </Link>
         </div>
       </div>
     </header>
